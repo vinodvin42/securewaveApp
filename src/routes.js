@@ -8,6 +8,7 @@ import Dashboard from "./components/Dashboard";
 import Users from "./components/Users";
 import Login from "./components/Login";
 import RouteGuard from "./components/RouteGuard"; // Assuming RouteGuard is a custom component
+import ResourceManagement from "./components/Resource/ResourceManagement";
 
 function AppRoutes() {
   return (
@@ -16,7 +17,8 @@ function AppRoutes() {
         {/* Protected routes */}
         <Route element={<RouteGuard />}>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/Users" element={<Users />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/resources" element={<ResourceManagement />} />
         </Route>
 
         {/* Public Route - Login */}

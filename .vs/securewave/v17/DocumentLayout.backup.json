@@ -1,0 +1,202 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\SecureWave\\securewave\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SecureWave\\securewave\\src\\components\\Login\\login.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\components\\Login\\login.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SecureWave\\securewave\\src\\components\\Login\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\components\\Login\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SecureWave\\securewave\\src\\components\\Layout\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\components\\Layout\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SecureWave\\securewave\\src\\components\\Users\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\components\\Users\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SecureWave\\securewave\\src\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SecureWave\\securewave\\src\\App.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\App.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SecureWave\\securewave\\src\\components\\Layout\\layout.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\components\\Layout\\layout.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SecureWave\\securewave\\src\\components\\Users\\UserCreationForm.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\components\\Users\\UserCreationForm.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SecureWave\\securewave\\src\\App.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\App.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SecureWave\\securewave\\src\\routes.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\routes.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "login.css",
+              "DocumentMoniker": "D:\\SecureWave\\securewave\\src\\components\\Login\\login.css",
+              "RelativeDocumentMoniker": "src\\components\\Login\\login.css",
+              "ToolTip": "D:\\SecureWave\\securewave\\src\\components\\Login\\login.css",
+              "RelativeToolTip": "src\\components\\Login\\login.css",
+              "ViewState": "AgIAACoAAAAAAAAAAAAAADkAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2025-03-03T19:56:27.569Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "index.js",
+              "DocumentMoniker": "D:\\SecureWave\\securewave\\src\\components\\Login\\index.js",
+              "RelativeDocumentMoniker": "src\\components\\Login\\index.js",
+              "ToolTip": "D:\\SecureWave\\securewave\\src\\components\\Login\\index.js",
+              "RelativeToolTip": "src\\components\\Login\\index.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-03-03T19:52:30.768Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "layout.css",
+              "DocumentMoniker": "D:\\SecureWave\\securewave\\src\\components\\Layout\\layout.css",
+              "RelativeDocumentMoniker": "src\\components\\Layout\\layout.css",
+              "ToolTip": "D:\\SecureWave\\securewave\\src\\components\\Layout\\layout.css",
+              "RelativeToolTip": "src\\components\\Layout\\layout.css",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAqwCcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2025-03-03T19:51:17.463Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "App.js",
+              "DocumentMoniker": "D:\\SecureWave\\securewave\\src\\App.js",
+              "RelativeDocumentMoniker": "src\\App.js",
+              "ToolTip": "D:\\SecureWave\\securewave\\src\\App.js",
+              "RelativeToolTip": "src\\App.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-03-03T19:47:37.519Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "index.js",
+              "DocumentMoniker": "D:\\SecureWave\\securewave\\src\\index.js",
+              "RelativeDocumentMoniker": "src\\index.js",
+              "ToolTip": "D:\\SecureWave\\securewave\\src\\index.js",
+              "RelativeToolTip": "src\\index.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-03-03T19:47:31.001Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "UserCreationForm.css",
+              "DocumentMoniker": "D:\\SecureWave\\securewave\\src\\components\\Users\\UserCreationForm.css",
+              "RelativeDocumentMoniker": "src\\components\\Users\\UserCreationForm.css",
+              "ToolTip": "D:\\SecureWave\\securewave\\src\\components\\Users\\UserCreationForm.css",
+              "RelativeToolTip": "src\\components\\Users\\UserCreationForm.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2025-03-03T19:46:15.538Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "App.css",
+              "DocumentMoniker": "D:\\SecureWave\\securewave\\src\\App.css",
+              "RelativeDocumentMoniker": "src\\App.css",
+              "ToolTip": "D:\\SecureWave\\securewave\\src\\App.css",
+              "RelativeToolTip": "src\\App.css",
+              "ViewState": "AgIAABUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2025-03-03T19:34:08.203Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "index.js",
+              "DocumentMoniker": "D:\\SecureWave\\securewave\\src\\components\\Users\\index.js",
+              "RelativeDocumentMoniker": "src\\components\\Users\\index.js",
+              "ToolTip": "D:\\SecureWave\\securewave\\src\\components\\Users\\index.js",
+              "RelativeToolTip": "src\\components\\Users\\index.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-03-03T19:32:33.378Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "routes.js",
+              "DocumentMoniker": "D:\\SecureWave\\securewave\\src\\routes.js",
+              "RelativeDocumentMoniker": "src\\routes.js",
+              "ToolTip": "D:\\SecureWave\\securewave\\src\\routes.js",
+              "RelativeToolTip": "src\\routes.js",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-03-03T19:27:36.603Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "index.js",
+              "DocumentMoniker": "D:\\SecureWave\\securewave\\src\\components\\Layout\\index.js",
+              "RelativeDocumentMoniker": "src\\components\\Layout\\index.js",
+              "ToolTip": "D:\\SecureWave\\securewave\\src\\components\\Layout\\index.js",
+              "RelativeToolTip": "src\\components\\Layout\\index.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-03-03T19:27:10.918Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,214 +1,638 @@
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { UserValidationSchema } from "./validations";
-import GenericTable from "../Generics/Table";
-import { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
+import {
+  Container,
+  Row,
+  Col,
+  Form,
+  Button,
+  Alert,
+  Spinner,
+  Card,
+  Table,
+  Pagination,
+} from "react-bootstrap";
 import axios from "axios";
+import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
 
-const UserCreationForm = () => {
-  const [data, setData] = useState([]);
-  const [columns, setColumns] = useState([]);
-  const [isEditing, setIsEditing] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    resolver: yupResolver(UserValidationSchema),
+const UserRegistrationForm = () => {
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phoneNumber: "",
+    accessLevel: "",
+    accessJustification: "",
+    requiresMFA: false,
+    isLdapUser: false,
+    ldapDn: "",
   });
 
-  // Fetch Data from API on Component Mount
-  useEffect(() => {
-    fetchUserData();
-  }, []);
-
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [usersPerPage] = useState(5);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchUserData = async () => {
-    setLoading(true); // Set loading state to true
-    setError(null); // Reset previous error state
-    console.log("JWT Token:", localStorage.getItem("token"));
+  // Fetch users from the API
+  const fetchUsers = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const response = await axios.get(
-        "https://localhost:5189/api/Auth/Users",
+      const token = localStorage.getItem("token"); // Get the token from local storage
+      const response = await axios.get("https://localhost:5189/api/Users", {
+        headers: {
+          Authorization: `Bearer ${token}`, // Include the token in the request
+        },
+      });
+
+      if (response.status === 200) {
+        setUsers(response.data);
+      } else {
+        throw new Error("Failed to fetch users");
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      if (error.response) {
+        if (error.response.status === 401) {
+          setError("Authentication failed. Please log in again.");
+          // Optionally, redirect to login page
+        } else {
+          setError(
+            error.response.data.message ||
+              "Failed to fetch users. Please try again."
+          );
+        }
+      } else if (error.request) {
+        setError(
+          "No response received from the server. Please check your connection."
+        );
+      } else {
+        setError("An error occurred while setting up the request.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const userDto = {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password, // Ensure this is included
+        phoneNumber: formData.phoneNumber,
+        accessLevel: formData.accessLevel,
+        accessJustification: formData.accessJustification,
+        requiresMFA: formData.requiresMFA,
+        isLdapUser: formData.isLdapUser,
+        ldapDn: formData.ldapDn,
+      };
+
+      const token = localStorage.getItem("token"); // Get the token from local storage
+
+      if (isEditing) {
+        // Include userId in the DTO when editing
+        userDto.userId = currentUser.userId;
+
+        // Update user
+        await axios.put(
+          `https://localhost:5189/api/Users/${currentUser.userId}`,
+          userDto,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Include the token in the request
+            },
+          }
+        );
+        setSuccessMessage("User updated successfully!");
+      } else {
+        // Create user
+        const response = await axios.post(
+          "https://localhost:5189/api/Users",
+          userDto,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Include the token in the request
+            },
+          }
+        );
+        if (response.status === 201) {
+          setSuccessMessage("User registered successfully!");
+        } else {
+          throw new Error("Failed to register user");
+        }
+      }
+
+      fetchUsers(); // Refresh the user list
+      resetForm(); // Reset the form
+    } catch (error) {
+      console.error("Error:", error);
+      setError(
+        error.response?.data?.message || "An error occurred. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle edit button click
+  const handleEdit = (user) => {
+    setIsEditing(true);
+    setCurrentUser(user);
+    setFormData({
+      username: user.username,
+      email: user.email,
+      password: "", // Do not include the password
+      confirmPassword: "", // Do not include the password
+      phoneNumber: user.phoneNumber,
+      accessLevel: user.accessLevel,
+      accessJustification: user.accessJustification,
+      requiresMFA: user.requiresMFA,
+      isLdapUser: user.isLdapUser,
+      ldapDn: user.ldapDn,
+    });
+  };
+
+  // Handle lockout button click
+  const handleLockout = async (id) => {
+    try {
+      const token = localStorage.getItem("token"); // Get the token from local storage
+      const lockoutEndTime = new Date(); // Set the lockout end time (e.g., current time + desired duration)
+      lockoutEndTime.setHours(lockoutEndTime.getHours() + 1); // Example: Lockout for 1 hour
+
+      await axios.post(
+        `https://localhost:5189/api/Users/${id}/Lockout`, // Correct endpoint
+        lockoutEndTime, // Include lockoutEndTime in the request body
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // Using JWT token for authorization
+            Authorization: `Bearer ${token}`, // Include the token in the request
+            "Content-Type": "application/json", // Specify the content type
           },
         }
       );
 
-      const fetchedData = response.data;
-      console.log(fetchedData);
-      setData(fetchedData); // Set data to state
-
-      // Dynamically generate columns based on the keys of the first object in the response
-      if (fetchedData.length > 0) {
-        const dynamicColumns = Object.keys(fetchedData[0]).map((key) => ({
-          header: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize key names for headers
-          field: key,
-        }));
-        setColumns(dynamicColumns);
-      } else {
-        // Handle empty data scenario
-        setError("No users found.");
-      }
+      setSuccessMessage("User locked out successfully!");
+      fetchUsers(); // Refresh the user list
     } catch (error) {
-      if (error.response) {
-        console.error("Error data:", error.response.data);
-        console.error("Error status:", error.response.status);
-        console.error("Error headers:", error.response.headers);
-      }
-    } finally {
-      setLoading(false); // Set loading to false after request completion
+      console.error("Error locking out user:", error);
+      setError("Failed to lock out user. Please try again.");
     }
   };
 
-  // Create New User
-  const handleCreate = async (newUser) => {
-    try {
-      const response = await axios.post("/api/users", newUser); // API endpoint for creating users
-      setData([...data, response.data]); // Append newly created user
-    } catch (error) {
-      console.error("Error creating user:", error);
-    }
-  };
-
-  // Update User
-  const handleUpdate = async (updatedUser) => {
-    try {
-      await axios.put(`/api/users/${updatedUser.id}`, updatedUser); // API endpoint for updating users
-      setData(
-        data.map((user) => (user.id === updatedUser.id ? updatedUser : user))
-      );
-      setIsEditing(false);
-      setCurrentUser(null);
-    } catch (error) {
-      console.error("Error updating user:", error);
-    }
-  };
-
-  // Delete User
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/users/${id}`); // API endpoint for deleting users
-      setData(data.filter((user) => user.id !== id)); // Remove deleted user from the list
+      const token = localStorage.getItem("token"); // Get the token from local storage
+
+      // Confirm deletion with the user
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this user?"
+      );
+      if (!confirmDelete) return; // Exit if the user cancels
+
+      await axios.delete(`https://localhost:5189/api/Users/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Include the token in the request
+        },
+      });
+
+      // Show success message
+      setSuccessMessage("User deleted successfully!");
+
+      // Refresh the user list
+      fetchUsers();
     } catch (error) {
       console.error("Error deleting user:", error);
+
+      // Set the error message
+      setError(
+        error.response?.data?.message ||
+          "Failed to delete user. Please try again."
+      );
     }
   };
 
-  // Handle Form Submit (Create User)
-  const onSubmit = (userData) => {
-    if (isEditing) {
-      handleUpdate({ ...currentUser, ...userData });
-    } else {
-      handleCreate(userData);
+  // Handle unlock button click
+  const handleUnlock = async (id) => {
+    try {
+      const token = localStorage.getItem("token"); // Get the token from local storage
+
+      await axios.post(
+        `https://localhost:5189/api/Users/${id}/Unlock`, // Correct endpoint
+        null, // No request body required
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include the token in the request
+          },
+        }
+      );
+
+      setSuccessMessage("User unlocked successfully!");
+      fetchUsers(); // Refresh the user list
+    } catch (error) {
+      console.error("Error unlocking user:", error);
+      setError("Failed to unlock user. Please try again.");
     }
   };
 
-  // Handle Edit Click
-  const handleEdit = (user) => {
-    setIsEditing(true);
-    setCurrentUser(user);
+  // Reset form
+  const resetForm = () => {
+    setFormData({
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      phoneNumber: "",
+      accessLevel: "",
+      accessJustification: "",
+      requiresMFA: false,
+      isLdapUser: false,
+      ldapDn: "",
+    });
+    setIsEditing(false);
+    setCurrentUser(null);
   };
+
+  // Pagination logic
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
+  const totalPages = Math.ceil(users.length / usersPerPage);
 
   return (
-    <div className="container mt-5">
-      <h2>{isEditing ? "Edit User" : "Create New User"}</h2>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Row 1: Username, Email, Password */}
-        <div className="row">
-          <div className="col-md-4 mb-3">
-            <label>Username</label>
-            <input
-              type="text"
-              className={`form-control ${errors.username ? "is-invalid" : ""}`}
-              {...register("username")}
-              defaultValue={currentUser?.username || ""}
-            />
-            <div className="invalid-feedback">{errors.username?.message}</div>
-          </div>
+    <Container className="mt-1">
+      <Row>
+        <Col md={12}>
+          <Card className="shadow mb-3">
+            <Card.Body>
+              <Card.Title className="text-center mb-4">
+                {isEditing ? "Edit User" : "Register New User"}
+              </Card.Title>
+              {error && <Alert variant="danger">{error}</Alert>}
+              {successMessage && (
+                <Alert variant="success">{successMessage}</Alert>
+              )}
+              <Form onSubmit={handleSubmit}>
+                <Row>
+                  <Col md={3}>
+                    <Form.Group className="input-group input-group-sm mb-3">
+                      <Form.Control
+                        type="text"
+                        size="sm-2"
+                        name="username"
+                        placeholder="Username"
+                        value={formData.username}
+                        onChange={(e) =>
+                          setFormData({ ...formData, username: e.target.value })
+                        }
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={3}>
+                    <Form.Group className="input-group input-group-sm mb-3">
+                      <Form.Control
+                        type="email"
+                        name="email"
+                        placeholder="Email"
+                        value={formData.email}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={3}>
+                    <Form.Group className="input-group input-group-sm mb-3">
+                      <Form.Select
+                        name="accessLevel"
+                        value={formData.accessLevel}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            accessLevel: e.target.value,
+                          })
+                        }
+                        required
+                      >
+                        <option value="">Select Access Level</option>
+                        <option value="SuperAdmin">SuperAdmin</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Auditor">Auditor</option>
+                        <option value="SecurityOfficer">SecurityOfficer</option>
+                        <option value="ComplianceOfficer">
+                          ComplianceOfficer
+                        </option>
+                        <option value="HelpDesk">HelpDesk</option>
+                        <option value="User">User</option>
+                        <option value="PrivilegedUser">PrivilegedUser</option>
+                        <option value="ApplicationUser">ApplicationUser</option>
+                        <option value="Guest">Guest</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col md={3}>
+                    <Form.Group className="input-group input-group-sm mb-3">
+                      <Form.Control
+                        type="text"
+                        name="phoneNumber"
+                        placeholder="Phone Number"
+                        value={formData.phoneNumber}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            phoneNumber: e.target.value,
+                          })
+                        }
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
 
-          <div className="col-md-4 mb-3">
-            <label>Password</label>
-            <input
-              type="password"
-              className={`form-control ${errors.password ? "is-invalid" : ""}`}
-              {...register("password")}
-              defaultValue={currentUser?.password || ""}
-            />
-            <div className="invalid-feedback">{errors.password?.message}</div>
-          </div>
+                <Row>
+                  <Col md={3}>
+                    <Form.Group className="input-group input-group-sm mb-3">
+                      <Form.Control
+                        type="password"
+                        name="password"
+                        placeholder="Password"
+                        value={formData.password}
+                        onChange={(e) =>
+                          setFormData({ ...formData, password: e.target.value })
+                        }
+                        required
+                        disabled={isEditing} // Disable in edit mode
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={3}>
+                    <Form.Group className="input-group input-group-sm mb-3">
+                      <Form.Control
+                        type="password"
+                        name="confirmPassword"
+                        placeholder="Confirm Password"
+                        value={formData.confirmPassword}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            confirmPassword: e.target.value,
+                          })
+                        }
+                        required
+                        disabled={isEditing} // Disable in edit mode
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={3}>
+                    <Form.Group className="input-group input-group-sm mb-3">
+                      <Form.Control
+                        type="text"
+                        name="ldapDn"
+                        placeholder="LDAP DN"
+                        value={formData.ldapDn}
+                        onChange={(e) =>
+                          setFormData({ ...formData, ldapDn: e.target.value })
+                        }
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={3}>
+                    <Form.Group className="input-group input-group-sm mb-3">
+                      <Form.Control
+                        as="textarea"
+                        rows={1}
+                        name="accessJustification"
+                        placeholder="Access Justification"
+                        value={formData.accessJustification}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            accessJustification: e.target.value,
+                          })
+                        }
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md={2}>
+                    <Form.Group className="input-group input-group-sm mb-3">
+                      <Form.Check
+                        type="checkbox"
+                        label="Requires MFA"
+                        name="requiresMFA"
+                        checked={formData.requiresMFA}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            requiresMFA: e.target.checked,
+                          })
+                        }
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={2}>
+                    <Form.Group className="input-group input-group-sm mb-3">
+                      <Form.Check
+                        type="checkbox"
+                        label="Is LDAP User"
+                        name="isLdapUser"
+                        checked={formData.isLdapUser}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            isLdapUser: e.target.checked,
+                          })
+                        }
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+                <div className="text-center">
+                  <Button
+                    type="submit"
+                    size="sm-2"
+                    variant="success"
+                    disabled={loading}
+                    className="me-2" // Only add margin class
+                  >
+                    {loading ? (
+                      <Spinner
+                        as="span"
+                        animation="border"
+                        variant="light"
+                        size="sm-2"
+                        role="status"
+                        aria-hidden="true"
+                      />
+                    ) : isEditing ? (
+                      "Update User"
+                    ) : (
+                      "Register"
+                    )}
+                  </Button>
+                  {isEditing && (
+                    <Button
+                      size="sm-2"
+                      variant="secondary"
+                      onClick={resetForm}
+                      className="me-2" // Only add margin class
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </div>
+              </Form>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+      <Row>
+        <Col md={12}>
+          <Card className="shadow mb-3">
+            <Card.Body>
+              {/* Card Title */}
+              <Card.Title className="text-center mb-4">
+                User Management
+              </Card.Title>
+              <Row>
+                {/* Search Input with Better Alignment */}
+                <Col md={9}></Col>
+                <Col md={3}>
+                  <Form.Group className="input-group input-group-sm mb-3">
+                    <Form.Control
+                      type="text"
+                      placeholder="Search by username"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+              {/* Table with Improved Styling */}
+              <div className="table-responsive">
+                <Table bordered className="table table-sm table-hover">
+                  <thead>
+                    <tr>
+                      <th scope="col" className="text-uppercase">
+                        Username
+                      </th>
+                      <th scope="col" className="text-uppercase">
+                        Email
+                      </th>
+                      <th scope="col" className="text-uppercase">
+                        Access Level
+                      </th>
+                      <th scope="col" className="text-uppercase">
+                        Phone
+                      </th>
+                      <th scope="col" className="text-uppercase">
+                        Is Active
+                      </th>
+                      <th scope="col" className="text-uppercase">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentUsers
+                      .filter((user) =>
+                        user.username
+                          .toLowerCase()
+                          .includes(searchTerm.toLowerCase())
+                      )
+                      .map((user) => (
+                        <tr key={user.userId} className="table-light">
+                          <td>{user.username}</td>
+                          <td>{user.email}</td>
+                          <td>{user.accessLevel}</td>
+                          <td>{user.phoneNumber}</td>
+                          <td>{user.isActive ? "Active" : "Inactive"}</td>
+                          <td>
+                            {/* Buttons with Better Size & Spacing */}
+                            <Button
+                              variant="success"
+                              size="sm-2"
+                              onClick={() => handleEdit(user)}
+                              className="btn btn-success btn-sm me-2"
+                              aria-label={`Edit user ${user.username}`}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="danger"
+                              size="sm-2"
+                              onClick={() => handleDelete(user.userId)}
+                              className="btn btn-secondary btn-sm me-2"
+                              aria-label={`Delete user ${user.username}`}
+                              disabled={user.accessLevel === "SuperAdmin"}
+                            >
+                              Delete
+                            </Button>
+                            <Button
+                              variant={!user.isActive ? "success" : "danger"} // Change color based on status
+                              size="sm-2"
+                              onClick={() => {
+                                if (user.role === "superadmin") {
+                                  alert("Admin user cannot be locked out."); // Notify the user
+                                  return; // Exit the function early
+                                }
+                                !user.isActive
+                                  ? handleUnlock(user.userId)
+                                  : handleLockout(user.userId); // Call the correct handler
+                              }}
+                              className="btn btn-secondary btn-sm"
+                              aria-label={
+                                user.isActive
+                                  ? `Unlock user ${user.username}`
+                                  : `Lockout user ${user.username}`
+                              }
+                              disabled={user.accessLevel === "SuperAdmin"} // Disable for superadmin
+                            >
+                              {!user.isActive ? "Active" : "Inactive"}
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </Table>
+              </div>
 
-          <div className="col-md-4 mb-3">
-            <label>Confirm Password</label>
-            <input
-              type="password"
-              className={`form-control ${
-                errors.confirmPassword ? "is-invalid" : ""
-              }`}
-              {...register("confirmPassword")}
-              defaultValue={currentUser?.confirmPassword || ""}
-            />
-            <div className="invalid-feedback">
-              {errors.confirmPassword?.message}
-            </div>
-          </div>
-        </div>
-
-        {/* Row 2: Email, Phone Number */}
-        <div className="row">
-          <div className="col-md-4 mb-3">
-            <label>Email</label>
-            <input
-              type="email"
-              className={`form-control ${errors.email ? "is-invalid" : ""}`}
-              {...register("email")}
-              defaultValue={currentUser?.email || ""}
-            />
-            <div className="invalid-feedback">{errors.email?.message}</div>
-          </div>
-
-          <div className="col-md-4 mb-3">
-            <label>Phone Number</label>
-            <input
-              type="text"
-              className={`form-control ${
-                errors.phoneNumber ? "is-invalid" : ""
-              }`}
-              {...register("phoneNumber")}
-              defaultValue={currentUser?.phoneNumber || ""}
-            />
-            <div className="invalid-feedback">
-              {errors.phoneNumber?.message}
-            </div>
-          </div>
-
-          <div className="col-md-4 mb-3">
-            {/* Submit Button */}
-            <label></label>
-            <div className="d-grid">
-              <button type="submit" className="btn btn-primary">
-                {isEditing ? "Update User" : "Create User"}
-              </button>
-            </div>
-          </div>
-        </div>
-      </form>
-
-      <h2>User Management</h2>
-      <GenericTable
-        columns={columns}
-        data={data}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
-    </div>
+              {/* Pagination with Better Styling */}
+              <Pagination className="mt-4 pagination-sm justify-content-center">
+                {Array.from({ length: totalPages }, (_, index) => (
+                  <Pagination.Item
+                    key={index + 1}
+                    active={index + 1 === currentPage}
+                    onClick={() => setCurrentPage(index + 1)}
+                    aria-label={`Go to page ${index + 1}`}
+                    className="rounded-pill px-3"
+                  >
+                    {index + 1}
+                  </Pagination.Item>
+                ))}
+              </Pagination>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 
-export default UserCreationForm;
+export default UserRegistrationForm;

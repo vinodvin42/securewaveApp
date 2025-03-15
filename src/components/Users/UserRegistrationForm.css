@@ -1,0 +1,89 @@
+.user-registration-form {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #fff;
+}
+
+.user-registration-form .form-control {
+  border-radius: 5px;
+}
+
+.user-registration-form .btn-primary {
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+}
+
+.user-registration-form .btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.user-registration-form .invalid-feedback {
+  display: block;
+  color: #dc3545;
+}
+
+/* General form styling */
+.form-container {
+  margin-top: 20px;
+}
+
+.card {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-label {
+  font-weight: bold;
+}
+
+.form-control {
+  border-radius: 4px;
+  border: 1px solid #ced4da;
+  padding: 10px;
+}
+
+.form-control:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+}
+
+.form-check-label {
+  margin-left: 5px;
+}
+
+.button-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.button-container .btn {
+  margin-right: 10px;
+}
+
+.alert {
+  margin-top: 20px;
+}
+
+.table {
+  margin-top: 20px;
+}
+
+.pagination {
+  justify-content: center;
+  margin-top: 20px;
+}
+.fixed-width-btn {
+  width: 120px; /* Adjust the width as needed */
+  text-align: center; /* Center the text inside the button */
+}

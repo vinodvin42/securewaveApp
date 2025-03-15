@@ -1,20 +1,22 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-// import "../Login.css"; // Custom CSS for additional styling
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { LoginValidationSchema } from "./validations";
 import axios from "axios";
 import { setAuthToken } from "../../helpers/setAuthToken";
-import { useState, useEffect } from "react"; // Import useState and useEffect
+import { useState, useEffect } from "react";
+import "./login.css"; // Import custom CSS for additional styling
 
 const Login = () => {
   const [serverError, setServerError] = useState(""); // State for handling server error messages
+  const [loading, setLoading] = useState(false); // State for loading indicator
+  const [success, setSuccess] = useState(false); // State for success message
+  const [showPassword, setShowPassword] = useState(false); // State for password visibility
 
   // Default state for the login form
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(LoginValidationSchema),
@@ -24,6 +26,7 @@ const Login = () => {
   useEffect(() => {
     // Clear any existing JWT token when the login component is loaded
     localStorage.removeItem("token"); // Remove token from local storage
+    localStorage.removeItem("username"); // Remove username from local storage
 
     // Clear server error message
     setServerError("");
@@ -40,13 +43,16 @@ const Login = () => {
   }, []);
 
   const onSubmit = async (values) => {
-    console.log(values);
+    setLoading(true); // Start loading
+    setServerError(""); // Clear previous errors
+    setSuccess(false); // Reset success state
+
     try {
       const response = await axios.post(
         "https://localhost:5189/api/Auth/Login",
         values
       );
-      console.log(response);
+
       // Get token from response
       const token = response.data.token;
 
@@ -56,21 +62,36 @@ const Login = () => {
       // Set token to axios common header
       setAuthToken(token);
 
-      //set user name
+      // Set username
       localStorage.setItem("username", values.username);
 
-      // Redirect user to home page
-      window.location.href = "/";
+      // Set success state
+      setSuccess(true);
+
+      // Redirect user to home page after a short delay
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000); // Redirect after 1 second
     } catch (error) {
       console.error("Error during login:", error);
+
+      // Extract the error message from the response
+      const errorMessage =
+        error.response?.data || // Check for direct message
+        error.response?.data?.message || // Check for nested message
+        "An error occurred. Please check your credentials and try again.";
+
       // Set the server error message
-      setServerError(
-        "An error occurred. Please check your credentials and try again."
-      );
+      setServerError(errorMessage);
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
-  console.log(watch("username"));
+  // Toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   return (
     <div className="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
@@ -84,6 +105,7 @@ const Login = () => {
             loop
             autoPlay
             muted
+            aria-label="Cybersecurity background video"
           >
             <source src="/videos/login-bg.mp4" type="video/mp4" />
             Your browser does not support the video tag.
@@ -100,6 +122,8 @@ const Login = () => {
                   src="/images/securewave-logo.png" // Update the path to your logo
                   alt="SecureWave Logo"
                   className="img-fluid"
+                  style={{ maxWidth: "150px" }}
+                  aria-label="SecureWave Logo"
                 />
               </div>
               <h3 className="card-title text-center mb-4">
@@ -111,10 +135,16 @@ const Login = () => {
                   {serverError}
                 </div>
               )}
+              {/* Display success message if login is successful */}
+              {success && (
+                <div className="alert alert-success" role="alert">
+                  Login successful! Redirecting...
+                </div>
+              )}
 
               <form onSubmit={handleSubmit(onSubmit)} noValidate>
                 <div className="form-group mb-3">
-                  <label htmlFor="username" className="form-label text-left">
+                  <label htmlFor="username" className="form-label">
                     Username
                   </label>
                   <input
@@ -126,9 +156,10 @@ const Login = () => {
                     name="username"
                     {...register("username")}
                     placeholder="Enter your username"
+                    aria-label="Username input"
                   />
                   {errors.username?.message && (
-                    <p className="invalid-feedback">
+                    <p className="invalid-feedback" role="alert">
                       {errors.username?.message}
                     </p>
                   )}
@@ -137,24 +168,39 @@ const Login = () => {
                   <label htmlFor="password" className="form-label">
                     Password
                   </label>
-                  <input
-                    type="password"
-                    className={`form-control ${
-                      errors.password ? "is-invalid" : ""
-                    }`}
-                    id="password"
-                    name="password"
-                    {...register("password")}
-                    placeholder="Enter your password"
-                  />
+                  <div className="input-group">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className={`form-control ${
+                        errors.password ? "is-invalid" : ""
+                      }`}
+                      id="password"
+                      name="password"
+                      {...register("password")}
+                      placeholder="Enter your password"
+                      aria-label="Password input"
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={togglePasswordVisibility}
+                      aria-label="Toggle password visibility"
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
                   {errors.password?.message && (
-                    <p className="invalid-feedback">
+                    <p className="invalid-feedback" role="alert">
                       {errors.password?.message}
                     </p>
                   )}
                 </div>
-                <button type="submit" className="btn btn-primary w-100 py-2">
-                  Login
+                <button
+                  type="submit"
+                  className="btn btn-primary w-100 py-2"
+                  disabled={loading}
+                >
+                  {loading ? "Logging in..." : "Login"}
                 </button>
               </form>
               <div className="text-center mt-3">
