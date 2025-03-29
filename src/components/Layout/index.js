@@ -33,29 +33,26 @@ const Layout = ({ children }) => {
             SecureWave
           </h4>
           <Nav className="flex-column">
-            <Nav.Link as={NavLink} to="/" className="p-1">
-              <i className="fas fa-home me-2"></i> Home
-            </Nav.Link>
             <Nav.Link as={NavLink} to="/dashboard" className="p-1">
               <i className="fas fa-tachometer-alt me-2"></i> Dashboard
             </Nav.Link>
             <Nav.Link as={NavLink} to="/users" className="p-1">
               <i className="fas fa-users me-2"></i> User Management
             </Nav.Link>
-            <Nav.Link as={NavLink} to="/roles" className="p-1">
-              <i className="fas fa-user-tag me-2"></i> Role Management
-            </Nav.Link>
             <Nav.Link as={NavLink} to="/resources" className="p-1">
               <i className="fas fa-server me-2"></i> Resource Management
-            </Nav.Link>
-            <Nav.Link as={NavLink} to="/credentials" className="p-1">
-              <i className="fas fa-key me-2"></i> Credential Management
             </Nav.Link>
             <Nav.Link as={NavLink} to="/access-requests" className="p-1">
               <i className="fas fa-clipboard-list me-2"></i> Access Requests
             </Nav.Link>
             <Nav.Link as={NavLink} to="/sessions" className="p-1">
               <i className="fas fa-clock me-2"></i> Sessions
+            </Nav.Link>
+            <Nav.Link as={NavLink} to="/roles" className="p-1">
+              <i className="fas fa-user-tag me-2"></i> Role Management
+            </Nav.Link>
+            <Nav.Link as={NavLink} to="/credentials" className="p-1">
+              <i className="fas fa-key me-2"></i> Credential Management
             </Nav.Link>
             <Nav.Link as={NavLink} to="/audit-logs" className="p-1">
               <i className="fas fa-clipboard-check me-2"></i> Audit Logs

@@ -70,7 +70,7 @@ const Login = () => {
 
       // Redirect user to home page after a short delay
       setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = "/dashboard"; // Redirect to dashboard
       }, 1000); // Redirect after 1 second
     } catch (error) {
       console.error("Error during login:", error);

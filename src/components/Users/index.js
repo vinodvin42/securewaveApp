@@ -43,10 +43,10 @@ const UserRegistrationForm = () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("token"); // Get the token from local storage
+      const token = localStorage.getItem("token");
       const response = await axios.get("https://localhost:5189/api/Users", {
         headers: {
-          Authorization: `Bearer ${token}`, // Include the token in the request
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -57,23 +57,10 @@ const UserRegistrationForm = () => {
       }
     } catch (error) {
       console.error("Error fetching users:", error);
-      if (error.response) {
-        if (error.response.status === 401) {
-          setError("Authentication failed. Please log in again.");
-          // Optionally, redirect to login page
-        } else {
-          setError(
-            error.response.data.message ||
-              "Failed to fetch users. Please try again."
-          );
-        }
-      } else if (error.request) {
-        setError(
-          "No response received from the server. Please check your connection."
-        );
-      } else {
-        setError("An error occurred while setting up the request.");
-      }
+      setError(
+        error.response?.data?.message ||
+          "Failed to fetch users. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -94,7 +81,7 @@ const UserRegistrationForm = () => {
       const userDto = {
         username: formData.username,
         email: formData.email,
-        password: formData.password, // Ensure this is included
+        password: formData.password,
         phoneNumber: formData.phoneNumber,
         accessLevel: formData.accessLevel,
         accessJustification: formData.accessJustification,
@@ -103,31 +90,27 @@ const UserRegistrationForm = () => {
         ldapDn: formData.ldapDn,
       };
 
-      const token = localStorage.getItem("token"); // Get the token from local storage
+      const token = localStorage.getItem("token");
 
       if (isEditing) {
-        // Include userId in the DTO when editing
         userDto.userId = currentUser.userId;
-
-        // Update user
         await axios.put(
           `https://localhost:5189/api/Users/${currentUser.userId}`,
           userDto,
           {
             headers: {
-              Authorization: `Bearer ${token}`, // Include the token in the request
+              Authorization: `Bearer ${token}`,
             },
           }
         );
         setSuccessMessage("User updated successfully!");
       } else {
-        // Create user
         const response = await axios.post(
           "https://localhost:5189/api/Users",
           userDto,
           {
             headers: {
-              Authorization: `Bearer ${token}`, // Include the token in the request
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -138,8 +121,8 @@ const UserRegistrationForm = () => {
         }
       }
 
-      fetchUsers(); // Refresh the user list
-      resetForm(); // Reset the form
+      fetchUsers();
+      resetForm();
     } catch (error) {
       console.error("Error:", error);
       setError(
@@ -157,8 +140,8 @@ const UserRegistrationForm = () => {
     setFormData({
       username: user.username,
       email: user.email,
-      password: "", // Do not include the password
-      confirmPassword: "", // Do not include the password
+      password: "",
+      confirmPassword: "",
       phoneNumber: user.phoneNumber,
       accessLevel: user.accessLevel,
       accessJustification: user.accessJustification,
@@ -171,23 +154,23 @@ const UserRegistrationForm = () => {
   // Handle lockout button click
   const handleLockout = async (id) => {
     try {
-      const token = localStorage.getItem("token"); // Get the token from local storage
-      const lockoutEndTime = new Date(); // Set the lockout end time (e.g., current time + desired duration)
-      lockoutEndTime.setHours(lockoutEndTime.getHours() + 1); // Example: Lockout for 1 hour
+      const token = localStorage.getItem("token");
+      const lockoutEndTime = new Date();
+      lockoutEndTime.setHours(lockoutEndTime.getHours() + 1);
 
       await axios.post(
-        `https://localhost:5189/api/Users/${id}/Lockout`, // Correct endpoint
-        lockoutEndTime, // Include lockoutEndTime in the request body
+        `https://localhost:5189/api/Users/${id}/Lockout`,
+        lockoutEndTime,
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Include the token in the request
-            "Content-Type": "application/json", // Specify the content type
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         }
       );
 
       setSuccessMessage("User locked out successfully!");
-      fetchUsers(); // Refresh the user list
+      fetchUsers();
     } catch (error) {
       console.error("Error locking out user:", error);
       setError("Failed to lock out user. Please try again.");
@@ -196,29 +179,22 @@ const UserRegistrationForm = () => {
 
   const handleDelete = async (id) => {
     try {
-      const token = localStorage.getItem("token"); // Get the token from local storage
-
-      // Confirm deletion with the user
+      const token = localStorage.getItem("token");
       const confirmDelete = window.confirm(
         "Are you sure you want to delete this user?"
       );
-      if (!confirmDelete) return; // Exit if the user cancels
+      if (!confirmDelete) return;
 
       await axios.delete(`https://localhost:5189/api/Users/${id}`, {
         headers: {
-          Authorization: `Bearer ${token}`, // Include the token in the request
+          Authorization: `Bearer ${token}`,
         },
       });
 
-      // Show success message
       setSuccessMessage("User deleted successfully!");
-
-      // Refresh the user list
       fetchUsers();
     } catch (error) {
       console.error("Error deleting user:", error);
-
-      // Set the error message
       setError(
         error.response?.data?.message ||
           "Failed to delete user. Please try again."
@@ -229,20 +205,16 @@ const UserRegistrationForm = () => {
   // Handle unlock button click
   const handleUnlock = async (id) => {
     try {
-      const token = localStorage.getItem("token"); // Get the token from local storage
+      const token = localStorage.getItem("token");
 
-      await axios.post(
-        `https://localhost:5189/api/Users/${id}/Unlock`, // Correct endpoint
-        null, // No request body required
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Include the token in the request
-          },
-        }
-      );
+      await axios.post(`https://localhost:5189/api/Users/${id}/Unlock`, null, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       setSuccessMessage("User unlocked successfully!");
-      fetchUsers(); // Refresh the user list
+      fetchUsers();
     } catch (error) {
       console.error("Error unlocking user:", error);
       setError("Failed to unlock user. Please try again.");
@@ -376,7 +348,7 @@ const UserRegistrationForm = () => {
                           setFormData({ ...formData, password: e.target.value })
                         }
                         required
-                        disabled={isEditing} // Disable in edit mode
+                        disabled={isEditing}
                       />
                     </Form.Group>
                   </Col>
@@ -394,7 +366,7 @@ const UserRegistrationForm = () => {
                           })
                         }
                         required
-                        disabled={isEditing} // Disable in edit mode
+                        disabled={isEditing}
                       />
                     </Form.Group>
                   </Col>
@@ -469,7 +441,7 @@ const UserRegistrationForm = () => {
                     size="sm-2"
                     variant="success"
                     disabled={loading}
-                    className="me-2" // Only add margin class
+                    className="me-2"
                   >
                     {loading ? (
                       <Spinner
@@ -491,7 +463,7 @@ const UserRegistrationForm = () => {
                       size="sm-2"
                       variant="secondary"
                       onClick={resetForm}
-                      className="me-2" // Only add margin class
+                      className="me-2"
                     >
                       Cancel
                     </Button>
@@ -506,12 +478,10 @@ const UserRegistrationForm = () => {
         <Col md={12}>
           <Card className="shadow mb-3">
             <Card.Body>
-              {/* Card Title */}
               <Card.Title className="text-center mb-4">
                 User Management
               </Card.Title>
               <Row>
-                {/* Search Input with Better Alignment */}
                 <Col md={9}></Col>
                 <Col md={3}>
                   <Form.Group className="input-group input-group-sm mb-3">
@@ -524,7 +494,6 @@ const UserRegistrationForm = () => {
                   </Form.Group>
                 </Col>
               </Row>
-              {/* Table with Improved Styling */}
               <div className="table-responsive">
                 <Table bordered className="table table-sm table-hover">
                   <thead>
@@ -564,7 +533,6 @@ const UserRegistrationForm = () => {
                           <td>{user.phoneNumber}</td>
                           <td>{user.isActive ? "Active" : "Inactive"}</td>
                           <td>
-                            {/* Buttons with Better Size & Spacing */}
                             <Button
                               variant="success"
                               size="sm-2"
@@ -585,16 +553,16 @@ const UserRegistrationForm = () => {
                               Delete
                             </Button>
                             <Button
-                              variant={!user.isActive ? "success" : "danger"} // Change color based on status
+                              variant={!user.isActive ? "success" : "danger"}
                               size="sm-2"
                               onClick={() => {
                                 if (user.role === "superadmin") {
-                                  alert("Admin user cannot be locked out."); // Notify the user
-                                  return; // Exit the function early
+                                  alert("Admin user cannot be locked out.");
+                                  return;
                                 }
                                 !user.isActive
                                   ? handleUnlock(user.userId)
-                                  : handleLockout(user.userId); // Call the correct handler
+                                  : handleLockout(user.userId);
                               }}
                               className="btn btn-secondary btn-sm"
                               aria-label={
@@ -602,7 +570,7 @@ const UserRegistrationForm = () => {
                                   ? `Unlock user ${user.username}`
                                   : `Lockout user ${user.username}`
                               }
-                              disabled={user.accessLevel === "SuperAdmin"} // Disable for superadmin
+                              disabled={user.accessLevel === "SuperAdmin"}
                             >
                               {!user.isActive ? "Active" : "Inactive"}
                             </Button>
@@ -612,8 +580,6 @@ const UserRegistrationForm = () => {
                   </tbody>
                 </Table>
               </div>
-
-              {/* Pagination with Better Styling */}
               <Pagination className="mt-4 pagination-sm justify-content-center">
                 {Array.from({ length: totalPages }, (_, index) => (
                   <Pagination.Item
