@@ -8,14 +8,12 @@ import {
   Badge,
   Button,
   Spinner,
-  Alert,
   InputGroup,
   FormControl,
   Modal,
   Form,
   Tab,
   Tabs,
-  Accordion,
 } from "react-bootstrap";
 import {
   faHistory,
@@ -28,7 +26,6 @@ import {
   faDatabase,
   faCloud,
   faInfoCircle,
-  faShieldAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "axios";
@@ -96,9 +93,21 @@ const RequestAccess = () => {
     setLoading((prev) => ({ ...prev, requests: true }));
     try {
       const response = await axios.get(
-        "https://localhost:5189/api/AccessRequests/my-requests"
+        "https://localhost:5189/api/AccessRequests"
       );
-      setRequests(response.data);
+
+      // Parse and format dates in the response
+      const formattedRequests = response.data.map((request) => ({
+        ...request,
+        requestDate: request.requestDate
+          ? new Date(request.requestDate).toISOString()
+          : null,
+        approvalDate: request.approvalDate
+          ? new Date(request.approvalDate).toISOString()
+          : null,
+      }));
+
+      setRequests(formattedRequests);
     } catch (err) {
       toast.error("Failed to load requests");
       console.error("Request fetch error:", err);
@@ -148,13 +157,33 @@ const RequestAccess = () => {
 
     setLoading((prev) => ({ ...prev, submitting: true }));
     try {
-      // Extract userId from JWT token
+      // Extract userId and role from JWT token
       const token = localStorage.getItem("token"); // Replace with your token storage mechanism
-      const userId = token
-        ? JSON.parse(atob(token.split(".")[1])).userId
-        : null;
+      if (!token) {
+        toast.error("Token is missing. Please log in again.");
+        setLoading((prev) => ({ ...prev, submitting: false }));
+        return;
+      }
+
+      let payload;
+      try {
+        payload = JSON.parse(atob(token.split(".")[1]));
+      } catch (error) {
+        toast.error("Invalid token. Please log in again.");
+        setLoading((prev) => ({ ...prev, submitting: false }));
+        return;
+      }
+
+      if (!payload || !payload.nameid) {
+        toast.error(
+          "You do not have the required permissions to perform this action."
+        );
+        setLoading((prev) => ({ ...prev, submitting: false }));
+        return;
+      }
+
       const requestPayload = {
-        userId: userId,
+        userId: payload.nameid, // Ensure userId is included
         resourceId: selectedResource.resourceId,
         status: "pending", // Default status for a new request
         requestDate: new Date().toISOString(),
@@ -388,7 +417,7 @@ const RequestAccess = () => {
                           <div className="small text-muted mb-1">
                             <FontAwesomeIcon icon={faClock} className="me-1" />
                             Requested:{" "}
-                            {new Date(request.requestedAt).toLocaleString()} •
+                            {new Date(request.requestDate).toLocaleString()} •
                             Duration: {request.requestedDuration}
                           </div>
                           <div className="mb-1">{request.reason}</div>

@@ -49,7 +49,7 @@ const Dashboard = () => {
     duration: "1", // hours
     approvalRequired: true,
   });
-  const [userRole, setUserRole] = useState("user"); // 'admin' or 'user'
+  const [userRole, setUserRole] = useState("admin"); // 'admin' or 'user'
   const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch data from API
@@ -59,27 +59,56 @@ const Dashboard = () => {
 
       // Simulate API calls
       const resourcesRes = await axios.get(
-        "https://localhost:5189/api/Resources"
+        "https://localhost:5189/api/Resource"
       );
+
+      const requestsRes = await axios.get(
+        "https://localhost:5189/api/AccessRequests"
+      );
+
       const sessionsRes = await axios.get(
         "https://localhost:5189/api/Sessions"
       );
-      const requestsRes =
-        userRole === "admin"
-          ? await axios.get("https://localhost:5189/api/AccessRequests/pending")
-          : await axios.get(
-              "https://localhost:5189/api/AccessRequests/my-requests"
-            );
 
-      setResources(resourcesRes.data);
-      setSessions(sessionsRes.data);
+      // Map resources to match expected structure
+      const mappedResources = resourcesRes.data.map((resource) => ({
+        id: resource.resourceId,
+        name: resource.resourceName,
+        description: resource.description,
+        type: resource.resourceType,
+        status: resource.status || "online", // Default to "online" if not provided
+        accessLevel: resource.accessLevel || "restricted", // Default to "restricted" if not provided
+        requiresApproval: resource.requiresApproval || false, // Default to false if not provided
+      }));
+
+      setResources(mappedResources);
       setAccessRequests(requestsRes.data);
+      setSessions(sessionsRes.data);
     } catch (error) {
       toast.error("Failed to load dashboard data");
     } finally {
       setLoading({ resources: false, sessions: false, requests: false });
     }
   }, [userRole]);
+
+  // Function to monitor session expiration
+  const startSessionTimer = (sessionId) => {
+    console.log(`Session timer started for session ID: ${sessionId}`);
+    // Simulate session expiration after a fixed duration (e.g., 1 hour)
+    const expirationTime = 60 * 60 * 1000; // 1 hour in milliseconds
+
+    setTimeout(() => {
+      toast.warning(
+        `Session ${sessionId} is about to expire. Please save your work.`
+      );
+    }, expirationTime - 5 * 60 * 1000); // Notify 5 minutes before expiration
+
+    setTimeout(() => {
+      toast.error(`Session ${sessionId} has expired.`);
+      setCurrentSession(null);
+      setShowSessionModal(false);
+    }, expirationTime);
+  };
 
   // Request access to resource
   const requestAccess = async () => {
@@ -115,27 +144,102 @@ const Dashboard = () => {
   // Start a session
   const startSession = async (resourceId) => {
     try {
-      const res = await axios.post("https://localhost:5189/api/Sessions", {
-        resourceId,
-      });
-      setCurrentSession(res.data);
+      // Extract userId and role from JWT token
+      const token = localStorage.getItem("token"); // Replace with your token storage mechanism
+      if (!token) {
+        toast.error("Token is missing. Please log in again.");
+        setLoading((prev) => ({ ...prev, submitting: false }));
+        return;
+      }
+
+      let payload;
+      try {
+        payload = JSON.parse(atob(token.split(".")[1]));
+      } catch (error) {
+        toast.error("Invalid token. Please log in again.");
+        setLoading((prev) => ({ ...prev, submitting: false }));
+        return;
+      }
+
+      if (!payload || !payload.nameid) {
+        toast.error(
+          "You do not have the required permissions to perform this action."
+        );
+        setLoading((prev) => ({ ...prev, submitting: false }));
+        return;
+      }
+      const sessionPayload = {
+        userId: payload.nameid, // From your auth context
+        resourceId: resourceId,
+        startTime: new Date().toISOString(),
+        endTime: null, // Session is active
+        sessionData: JSON.stringify({
+          // Additional connection details if needed
+          initiatedFrom: window.location.hostname,
+          userAgent: navigator.userAgent,
+        }),
+      };
+
+      const response = await axios.post(
+        "https://localhost:5189/api/Sessions",
+        sessionPayload
+      );
+
+      setCurrentSession(response.data);
       setShowSessionModal(true);
-      toast.success("Session started successfully");
-      fetchData();
+
+      // Start monitoring session expiration
+      startSessionTimer(response.data.sessionId);
     } catch (error) {
       toast.error("Failed to start session");
+      console.error("Session creation error:", error.response?.data);
     }
   };
 
   // End a session
   const endSession = async (sessionId) => {
     try {
-      await axios.delete(`https://localhost:5189/api/Sessions/${sessionId}`);
-      toast.success("Session terminated");
+      // Extract userId and role from JWT token
+      const token = localStorage.getItem("token"); // Replace with your token storage mechanism
+      if (!token) {
+        toast.error("Token is missing. Please log in again.");
+        setLoading((prev) => ({ ...prev, submitting: false }));
+        return;
+      }
+
+      let payload;
+      try {
+        payload = JSON.parse(atob(token.split(".")[1]));
+      } catch (error) {
+        toast.error("Invalid token. Please log in again.");
+        setLoading((prev) => ({ ...prev, submitting: false }));
+        return;
+      }
+
+      if (!payload || !payload.nameid) {
+        toast.error(
+          "You do not have the required permissions to perform this action."
+        );
+        setLoading((prev) => ({ ...prev, submitting: false }));
+        return;
+      }
+      const updatePayload = {
+        endTime: new Date().toISOString(),
+        sessionData: JSON.stringify({
+          terminatedBy: payload.nameid,
+          terminationReason: "user_request",
+        }),
+      };
+
+      await axios.patch(
+        `https://localhost:5189/api/Sessions/${sessionId}`,
+        updatePayload
+      );
       setShowSessionModal(false);
-      fetchData();
+      setCurrentSession(null);
     } catch (error) {
-      toast.error("Failed to end session");
+      toast.error("Failed to end session properly");
+      console.error("Session termination error:", error.response?.data);
     }
   };
 
@@ -158,14 +262,16 @@ const Dashboard = () => {
   useEffect(() => {
     fetchData();
     // Simulate role detection (in real app, get from auth context)
-    setUserRole(localStorage.getItem("userRole") || "user");
+    const role = localStorage.getItem("userRole") || "admin";
+    setUserRole(role);
+    console.log("UserRole:", role); // Debugging to ensure userRole is set correctly
   }, [fetchData]);
 
   // Filter resources by search term
   const filteredResources = resources.filter(
     (resource) =>
-      resource.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      resource.type.toLowerCase().includes(searchTerm.toLowerCase())
+      resource.name?.toLowerCase().includes(searchTerm.toLowerCase()) || // Safeguard added with optional chaining
+      resource.type?.toLowerCase().includes(searchTerm.toLowerCase()) // Safeguard added with optional chaining
   );
 
   return (
@@ -340,7 +446,7 @@ const Dashboard = () => {
                   {sessions
                     .filter((session) => !session.endTime)
                     .map((session) => (
-                      <ListGroup.Item key={session.id}>
+                      <ListGroup.Item key={session.sessionId}>
                         <div className="d-flex justify-content-between">
                           <div>
                             <strong>{session.resourceName}</strong>
@@ -351,7 +457,7 @@ const Dashboard = () => {
                           <Button
                             variant="outline-danger"
                             size="sm"
-                            onClick={() => endSession(session.id)}
+                            onClick={() => endSession(session.sessionId)}
                           >
                             End
                           </Button>
@@ -387,12 +493,14 @@ const Dashboard = () => {
                           <strong>{request.resourceName}</strong>
                           <div className="small">{request.reason}</div>
                           <div className="small text-muted">
-                            {formatTime(request.requestedAt)} •{" "}
+                            {formatTime(request.requestDate)} •{" 1"}
                             {request.requestedDuration}h
                           </div>
                         </div>
                         {userRole === "admin" ? (
                           <div>
+                            {console.log("Rendering admin buttons")}{" "}
+                            {/* Debugging */}
                             <Button
                               variant="success"
                               size="sm"

@@ -33,17 +33,134 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// Helper component for resource type icons
+// Update ResourceTypeIcon to handle numeric resourceType values
 const ResourceTypeIcon = ({ type }) => {
   const icons = {
-    0: faServer, // Server
-    1: faDatabase, // Database
-    2: faCloud, // Cloud
-    3: faNetworkWired, // Network
-    // Add more mappings as needed
+    Server: faServer,
+    Database: faDatabase,
+    Cloud: faCloud,
+    NetworkDevice: faNetworkWired,
+    Application: faServer,
+    FileSystem: faDatabase,
+    Container: faCloud,
+    Device: faNetworkWired,
+    API: faCloud,
+    Certificate: faShieldAlt,
   };
 
-  return <FontAwesomeIcon icon={icons[type] || faServer} className="me-2" />;
+  // Convert numeric type to corresponding resource type name if necessary
+  const resourceTypeName =
+    {
+      0: "Server",
+      1: "Database",
+      2: "Cloud",
+      3: "NetworkDevice",
+      4: "Application",
+      5: "FileSystem",
+      6: "Container",
+      7: "Device",
+      8: "API",
+      9: "Certificate",
+    }[type] || type;
+
+  return (
+    <FontAwesomeIcon
+      icon={icons[resourceTypeName] || faServer}
+      className="me-2"
+    />
+  );
+};
+
+// Field configuration logic - updated to include all resource types
+const getFieldConfig = (resourceTypeValue) => {
+  // Map numeric values to resource type names
+  const resourceTypeName =
+    {
+      0: "Server",
+      1: "Database",
+      2: "Cloud",
+      3: "NetworkDevice",
+      4: "Application",
+      5: "FileSystem",
+      6: "Container",
+      7: "Device",
+      8: "API",
+      9: "Certificate",
+    }[resourceTypeValue] || "Server";
+
+  // Base fields common to all resource types - unchanged
+  const baseFields = [
+    { name: "resourceName", label: "Resource Name", required: true },
+    { name: "resourceType", label: "Resource Type", required: true },
+    { name: "description", label: "Description", required: false },
+  ];
+
+  // Type-specific field configurations - updated with all resource types
+  const typeSpecificFields = {
+    Server: [
+      { name: "hostName", label: "Hostname/IP", required: true },
+      { name: "port", label: "Port", required: false },
+      { name: "protocol", label: "Protocol", required: true },
+      { name: "operatingSystem", label: "Operating System", required: true },
+    ],
+    Database: [
+      { name: "hostName", label: "Hostname/IP", required: true },
+      { name: "port", label: "Port", required: true },
+      { name: "protocol", label: "Protocol", required: true },
+      { name: "databaseType", label: "Database Type", required: true },
+    ],
+    Cloud: [
+      { name: "cloudProvider", label: "Cloud Provider", required: true },
+      { name: "apiEndpoint", label: "API Endpoint", required: false },
+      { name: "region", label: "Region", required: false },
+    ],
+    NetworkDevice: [
+      { name: "hostName", label: "IP Address", required: true },
+      { name: "port", label: "Management Port", required: true },
+      { name: "deviceType", label: "Device Type", required: true },
+    ],
+    Application: [
+      { name: "appName", label: "Application Name", required: true },
+      { name: "version", label: "Version", required: false },
+      { name: "language", label: "Language/Framework", required: false },
+    ],
+    FileSystem: [
+      { name: "fileSystemType", label: "File System Type", required: true },
+      { name: "mountPoint", label: "Mount Point", required: true },
+      { name: "capacityGB", label: "Capacity (GB)", required: false },
+    ],
+    Container: [
+      { name: "containerType", label: "Container Type", required: true },
+      { name: "image", label: "Image", required: true },
+      { name: "portMappings", label: "Port Mappings", required: false },
+    ],
+    Device: [
+      { name: "deviceType", label: "Device Type", required: true },
+      { name: "manufacturer", label: "Manufacturer", required: false },
+      { name: "model", label: "Model", required: false },
+    ],
+    API: [
+      { name: "apiEndpoint", label: "API Endpoint", required: true },
+      { name: "protocol", label: "Protocol", required: true },
+      { name: "authType", label: "Authentication Type", required: false },
+    ],
+    Certificate: [
+      {
+        name: "certificateDetails",
+        label: "Certificate Details",
+        required: true,
+      },
+      { name: "issuer", label: "Issuer", required: true },
+      { name: "expirationDate", label: "Expiration Date", required: true },
+    ],
+  };
+
+  // Return structure unchanged
+  return [
+    ...baseFields,
+    ...(typeSpecificFields[resourceTypeName] || []),
+    { name: "tags", label: "Tags", required: false },
+  ];
 };
 
 const ResourceManagement = () => {
@@ -149,9 +266,35 @@ const ResourceManagement = () => {
     }
   };
 
+  // Validate form before submission
+  const validateForm = () => {
+    const errors = {};
+
+    if (formData.port && !formData.hostName) {
+      errors.hostName = "Hostname is required when specifying a port.";
+    }
+
+    if (formData.port) {
+      const portNum = parseInt(formData.port, 10);
+      if (isNaN(portNum) || portNum.toString() !== formData.port) {
+        errors.port = "Port must be a number.";
+      } else if (portNum < 1 || portNum > 65535) {
+        errors.port = "Port must be between 1 and 65535.";
+      }
+    }
+
+    return errors;
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setError("Please fix the errors in the form.");
+      return;
+    }
+
     setLoading((prev) => ({ ...prev, form: true }));
     setError(null);
     setSuccessMessage(null);
@@ -160,8 +303,15 @@ const ResourceManagement = () => {
       const token = localStorage.getItem("token");
       const resourceDto = {
         ...formData,
-        resourceType: parseInt(formData.resourceType, 10), // Ensure resourceType is an integer
-        port: formData.port ? parseInt(formData.port, 10) : null, // Ensure port is an integer
+        resourceType: parseInt(formData.resourceType, 10) || 0,
+        protocol: parseInt(formData.protocol, 10) || 0,
+        operatingSystem: parseInt(formData.operatingSystem, 10) || 0,
+        databaseType: parseInt(formData.databaseType, 10) || 0,
+        cloudProvider: parseInt(formData.cloudProvider, 10) || 0,
+        fileSystemType: parseInt(formData.fileSystemType, 10) || 0,
+        deviceType: parseInt(formData.deviceType, 10) || 0,
+        containerType: parseInt(formData.containerType, 10) || 0,
+        port: formData.port ? parseInt(formData.port, 10) : null,
       };
 
       if (isEditing) {
@@ -187,24 +337,40 @@ const ResourceManagement = () => {
     }
   };
 
+  // Handle input change
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   // Handle edit button click
   const handleEdit = (resource) => {
     setIsEditing(true);
     setCurrentResource(resource);
+
+    // Map response values to corresponding IDs for dropdowns
+    const mapValueToId = (options, value) => {
+      const matchedOption = options.find((option) => option.value === value);
+      return matchedOption ? matchedOption.id : "";
+    };
+
     setFormData({
       resourceName: resource.resourceName,
-      resourceType: resource.resourceType,
+      resourceType: mapValueToId(resourcesType, resource.resourceType), // Ensure correct mapping for resourceType
       description: resource.description,
       hostName: resource.hostName,
       port: resource.port || "",
-      protocol: resource.protocol,
-      operatingSystem: resource.operatingSystem,
-      databaseType: resource.databaseType,
-      cloudProvider: resource.cloudProvider,
+      protocol: mapValueToId(protocols, resource.protocol),
+      operatingSystem: mapValueToId(operatingSystems, resource.operatingSystem),
+      databaseType: mapValueToId(databaseTypes, resource.databaseType),
+      cloudProvider: mapValueToId(cloudProviders, resource.cloudProvider),
+      fileSystemType: mapValueToId(fileSystemTypes, resource.fileSystemType),
+      containerType: mapValueToId(containerTypes, resource.containerType),
+      deviceType: mapValueToId(deviceTypes, resource.deviceType),
       apiEndpoint: resource.apiEndpoint || "",
-      fileSystemType: resource.fileSystemType,
-      containerType: resource.containerType,
-      deviceType: resource.deviceType,
       certificateDetails: resource.certificateDetails || "",
     });
   };
@@ -270,6 +436,103 @@ const ResourceManagement = () => {
     );
   };
 
+  // Render form fields dynamically based on configuration
+  const renderFormFields = () => {
+    const fields = getFieldConfig(formData.resourceType);
+
+    return fields.map((field) => (
+      <Col md={field.name === "description" ? 12 : 6} key={field.name}>
+        <Form.Group className="mb-3">
+          <Form.Label>
+            {field.label} {field.required && "*"}
+          </Form.Label>
+          {field.name === "protocol" || field.name === "resourceType" ? (
+            <Form.Select
+              name={field.name}
+              value={formData[field.name]}
+              onChange={handleInputChange}
+              required={field.required}
+            >
+              <option value="">Select {field.label}</option>
+              {renderDropdownOptions(
+                field.name === "protocol" ? protocols : resourcesType
+              )}
+            </Form.Select>
+          ) : field.name === "operatingSystem" ? (
+            <Form.Select
+              name={field.name}
+              value={formData[field.name]}
+              onChange={handleInputChange}
+              required={field.required}
+            >
+              <option value="">Select Operating System</option>
+              {renderDropdownOptions(operatingSystems)}
+            </Form.Select>
+          ) : field.name === "databaseType" ? (
+            <Form.Select
+              name={field.name}
+              value={formData[field.name]}
+              onChange={handleInputChange}
+              required={field.required}
+            >
+              <option value="">Select Database Type</option>
+              {renderDropdownOptions(databaseTypes)}
+            </Form.Select>
+          ) : field.name === "deviceType" ? (
+            <Form.Select
+              name={field.name}
+              value={formData[field.name]}
+              onChange={handleInputChange}
+              required={field.required}
+            >
+              <option value="">Select Device Type</option>
+              {renderDropdownOptions(deviceTypes)}
+            </Form.Select>
+          ) : field.name === "cloudProvider" ? (
+            <Form.Select
+              name={field.name}
+              value={formData[field.name]}
+              onChange={handleInputChange}
+              required={field.required}
+            >
+              <option value="">Select Cloud Provider</option>
+              {renderDropdownOptions(cloudProviders)}
+            </Form.Select>
+          ) : field.name === "containerType" ? (
+            <Form.Select
+              name={field.name}
+              value={formData[field.name]}
+              onChange={handleInputChange}
+              required={field.required}
+            >
+              <option value="">Select Container Type</option>
+              {renderDropdownOptions(containerTypes)}
+            </Form.Select>
+          ) : field.name === "certificateDetails" ? (
+            <Form.Control
+              as="textarea"
+              rows={3}
+              name={field.name}
+              value={formData[field.name]}
+              onChange={handleInputChange}
+              required={field.required}
+            />
+          ) : (
+            <Form.Control
+              type={field.name === "port" ? "number" : "text"}
+              name={field.name}
+              value={formData[field.name]}
+              onChange={handleInputChange}
+              required={field.required}
+              min={field.name === "port" ? 1 : undefined}
+              max={field.name === "port" ? 65535 : undefined}
+            />
+          )}
+        </Form.Group>
+      </Col>
+    ));
+  };
+
   // Pagination logic
   const indexOfLastResource = currentPage * resourcesPerPage;
   const indexOfFirstResource = indexOfLastResource - resourcesPerPage;
@@ -327,187 +590,7 @@ const ResourceManagement = () => {
             </Card.Header>
             <Card.Body>
               <Form onSubmit={handleSubmit}>
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Resource Name *</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="resourceName"
-                        placeholder="e.g., Production Database Server"
-                        value={formData.resourceName}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            resourceName: e.target.value,
-                          })
-                        }
-                        required
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Resource Type *</Form.Label>
-                      <Form.Select
-                        name="resourceType"
-                        value={formData.resourceType}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            resourceType: e.target.value,
-                          })
-                        }
-                        required
-                      >
-                        <option value="">Select Resource Type</option>
-                        {renderDropdownOptions(resourcesType)}
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Hostname/IP *</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="hostName"
-                        placeholder="e.g., db-server-01 or 192.168.1.100"
-                        value={formData.hostName}
-                        onChange={(e) =>
-                          setFormData({ ...formData, hostName: e.target.value })
-                        }
-                        required
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={3}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Port</Form.Label>
-                      <Form.Control
-                        type="number"
-                        name="port"
-                        placeholder="e.g., 3306"
-                        value={formData.port}
-                        onChange={(e) =>
-                          setFormData({ ...formData, port: e.target.value })
-                        }
-                        min="1"
-                        max="65535"
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={3}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Protocol *</Form.Label>
-                      <Form.Select
-                        name="protocol"
-                        value={formData.protocol}
-                        onChange={(e) =>
-                          setFormData({ ...formData, protocol: e.target.value })
-                        }
-                        required
-                      >
-                        <option value="">Select Protocol</option>
-                        {renderDropdownOptions(protocols)}
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Operating System</Form.Label>
-                      <Form.Select
-                        name="operatingSystem"
-                        value={formData.operatingSystem}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            operatingSystem: e.target.value,
-                          })
-                        }
-                      >
-                        <option value="">Select OS</option>
-                        {renderDropdownOptions(operatingSystems)}
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Database Type</Form.Label>
-                      <Form.Select
-                        name="databaseType"
-                        value={formData.databaseType}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            databaseType: e.target.value,
-                          })
-                        }
-                      >
-                        <option value="">Select Database</option>
-                        {renderDropdownOptions(databaseTypes)}
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Cloud Provider</Form.Label>
-                      <Form.Select
-                        name="cloudProvider"
-                        value={formData.cloudProvider}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            cloudProvider: e.target.value,
-                          })
-                        }
-                      >
-                        <option value="">Select Cloud Provider</option>
-                        {renderDropdownOptions(cloudProviders)}
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>API Endpoint</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="apiEndpoint"
-                        placeholder="e.g., https://api.example.com/v1"
-                        value={formData.apiEndpoint}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            apiEndpoint: e.target.value,
-                          })
-                        }
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>Description</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={2}
-                    name="description"
-                    placeholder="Brief description of the resource"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                  />
-                </Form.Group>
-
+                <Row>{renderFormFields()}</Row>
                 <div className="d-flex justify-content-end">
                   {isEditing && (
                     <Button
